@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.vanniktech.maven.publish")
 }
@@ -43,7 +42,7 @@ mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
 
-    coordinates("io.github.kyant0", "capsule", "2.1.2")
+    coordinates("io.github.kyant0", "capsule", "2.1.3")
 
     pom {
         name.set("Capsule")
