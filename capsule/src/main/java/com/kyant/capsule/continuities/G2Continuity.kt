@@ -21,12 +21,26 @@ data class G2Continuity(
     val capsuleProfile: G2ContinuityProfile = G2ContinuityProfile.Capsule
 ) : AdvancedContinuity() {
 
-    private fun resolveBezier(profile: G2ContinuityProfile) =
-        when (profile) {
-            this.profile -> this.profile.bezier
-            this.capsuleProfile -> this.capsuleProfile.bezier
-            else -> profile.bezier
+    private fun resolveBezier(
+        extFrac: Double,
+        arcFrac: Double,
+        bezKScale: Double,
+        arcKScale: Double
+    ): CubicBezier {
+        val p = this.profile
+        if (extFrac == p.extendedFraction && arcFrac == p.arcFraction &&
+            bezKScale == p.bezierCurvatureScale && arcKScale == p.arcCurvatureScale
+        ) {
+            return p.bezier
         }
+        val c = this.capsuleProfile
+        if (extFrac == c.extendedFraction && arcFrac == c.arcFraction &&
+            bezKScale == c.bezierCurvatureScale && arcKScale == c.arcCurvatureScale
+        ) {
+            return c.bezier
+        }
+        return createBaseBezierDirect(extFrac, arcFrac, bezKScale, arcKScale)
+    }
 
     override fun createStandardRoundedRectanglePathSegments(
         width: Double,
@@ -113,14 +127,14 @@ data class G2Continuity(
         val arcKScaleBL = 1.0 + (profile.arcCurvatureScale - 1.0) * ratioBL
 
         // base Beziers of each half corner
-        val bezierTLV = resolveBezier(G2ContinuityProfile(extFracTLV, arcFracTL, bezKScaleTLV, arcKScaleTL))
-        val bezierTLH = resolveBezier(G2ContinuityProfile(extFracTLH, arcFracTL, bezKScaleTLH, arcKScaleTL))
-        val bezierTRH = resolveBezier(G2ContinuityProfile(extFracTRH, arcFracTR, bezKScaleTRH, arcKScaleTR))
-        val bezierTRV = resolveBezier(G2ContinuityProfile(extFracTRV, arcFracTR, bezKScaleTRV, arcKScaleTR))
-        val bezierBRV = resolveBezier(G2ContinuityProfile(extFracBRV, arcFracBR, bezKScaleBRV, arcKScaleBR))
-        val bezierBRH = resolveBezier(G2ContinuityProfile(extFracBRH, arcFracBR, bezKScaleBRH, arcKScaleBR))
-        val bezierBLH = resolveBezier(G2ContinuityProfile(extFracBLH, arcFracBL, bezKScaleBLH, arcKScaleBL))
-        val bezierBLV = resolveBezier(G2ContinuityProfile(extFracBLV, arcFracBL, bezKScaleBLV, arcKScaleBL))
+        val bezierTLV = resolveBezier(extFracTLV, arcFracTL, bezKScaleTLV, arcKScaleTL)
+        val bezierTLH = resolveBezier(extFracTLH, arcFracTL, bezKScaleTLH, arcKScaleTL)
+        val bezierTRH = resolveBezier(extFracTRH, arcFracTR, bezKScaleTRH, arcKScaleTR)
+        val bezierTRV = resolveBezier(extFracTRV, arcFracTR, bezKScaleTRV, arcKScaleTR)
+        val bezierBRV = resolveBezier(extFracBRV, arcFracBR, bezKScaleBRV, arcKScaleBR)
+        val bezierBRH = resolveBezier(extFracBRH, arcFracBR, bezKScaleBRH, arcKScaleBR)
+        val bezierBLH = resolveBezier(extFracBLH, arcFracBL, bezKScaleBLH, arcKScaleBL)
+        val bezierBLV = resolveBezier(extFracBLV, arcFracBL, bezKScaleBLV, arcKScaleBL)
 
         return buildPathSegments {
             var x = 0.0
@@ -285,15 +299,7 @@ data class G2Continuity(
         val offsetH = -radius * extFracH
         val bezKScaleH = lerp(capsuleProfile.bezierCurvatureScale, profile.bezierCurvatureScale, ratioH)
         val arcFrac = capsuleProfile.arcFraction
-        val bezierH =
-            resolveBezier(
-                G2ContinuityProfile(
-                    extendedFraction = extFracH,
-                    arcFraction = arcFrac,
-                    bezierCurvatureScale = bezKScaleH,
-                    arcCurvatureScale = 1.0
-                )
-            ) * radius
+        val bezierH = resolveBezier(extFracH, arcFrac, bezKScaleH, 1.0) * radius
 
         val arcRad = PI * 0.5 * arcFrac
         val bezRad = (PI * 0.5 - arcRad) * 0.5
@@ -382,15 +388,7 @@ data class G2Continuity(
         val offsetV = -radius * extFracV
         val bezKScaleV = lerp(capsuleProfile.bezierCurvatureScale, profile.bezierCurvatureScale, ratioV)
         val arcFrac = capsuleProfile.arcFraction
-        val bezierV =
-            resolveBezier(
-                G2ContinuityProfile(
-                    extendedFraction = extFracV,
-                    arcFraction = arcFrac,
-                    bezierCurvatureScale = bezKScaleV,
-                    arcCurvatureScale = 1.0
-                )
-            ) * radius
+        val bezierV = resolveBezier(extFracV, arcFrac, bezKScaleV, 1.0) * radius
 
         val arcRad = PI * 0.5 * arcFrac
         val bezRad = (PI * 0.5 - arcRad) * 0.5

@@ -24,31 +24,7 @@ data class G2ContinuityProfile(
         get() = _bezier ?: createBaseBezier().also { _bezier = it }
 
     private fun createBaseBezier(): CubicBezier {
-        val arcRadians = PI * 0.5 * arcFraction
-        val bezierRadians = (PI * 0.5 - arcRadians) * 0.5
-        val sin = sin(bezierRadians)
-        val cos = cos(bezierRadians)
-
-        return if (bezierCurvatureScale == 1.0 && arcCurvatureScale == 1.0) {
-            val halfTan = sin / (1.0 + cos)
-            CubicBezier(
-                Point(-extendedFraction, 0.0),
-                Point((1.0 - 1.5 / (1.0 + cos)) * halfTan, 0.0),
-                Point(halfTan, 0.0),
-                Point(sin, 1.0 - cos)
-            )
-        } else {
-            val radiusScale = 1.0 / arcCurvatureScale
-            val arcCenter = Point(0.0, 1.0) + Point(1.0 / sqrt(2.0), -1.0 / sqrt(2.0)) * (1.0 - radiusScale)
-            val arcStartPoint = arcCenter + Point(sin, -cos) * radiusScale
-            return generateG2ContinuousBezierWithZeroStartCurvature(
-                start = Point(-extendedFraction, 0.0),
-                end = arcStartPoint,
-                startTangent = Point(1.0, 0.0),
-                endTangent = Point(cos, sin),
-                endCurvature = bezierCurvatureScale
-            )
-        }
+        return createBaseBezierDirect(extendedFraction, arcFraction, bezierCurvatureScale, arcCurvatureScale)
     }
 
     companion object {
@@ -86,6 +62,39 @@ fun lerp(start: G2ContinuityProfile, stop: G2ContinuityProfile, fraction: Double
         bezierCurvatureScale = lerp(start.bezierCurvatureScale, stop.bezierCurvatureScale, fraction),
         arcCurvatureScale = lerp(start.arcCurvatureScale, stop.arcCurvatureScale, fraction)
     )
+}
+
+internal fun createBaseBezierDirect(
+    extendedFraction: Double,
+    arcFraction: Double,
+    bezierCurvatureScale: Double,
+    arcCurvatureScale: Double
+): CubicBezier {
+    val arcRadians = PI * 0.5 * arcFraction
+    val bezierRadians = (PI * 0.5 - arcRadians) * 0.5
+    val sin = sin(bezierRadians)
+    val cos = cos(bezierRadians)
+
+    return if (bezierCurvatureScale == 1.0 && arcCurvatureScale == 1.0) {
+        val halfTan = sin / (1.0 + cos)
+        CubicBezier(
+            Point(-extendedFraction, 0.0),
+            Point((1.0 - 1.5 / (1.0 + cos)) * halfTan, 0.0),
+            Point(halfTan, 0.0),
+            Point(sin, 1.0 - cos)
+        )
+    } else {
+        val radiusScale = 1.0 / arcCurvatureScale
+        val arcCenter = Point(0.0, 1.0) + Point(1.0 / sqrt(2.0), -1.0 / sqrt(2.0)) * (1.0 - radiusScale)
+        val arcStartPoint = arcCenter + Point(sin, -cos) * radiusScale
+        generateG2ContinuousBezierWithZeroStartCurvature(
+            start = Point(-extendedFraction, 0.0),
+            end = arcStartPoint,
+            startTangent = Point(1.0, 0.0),
+            endTangent = Point(cos, sin),
+            endCurvature = bezierCurvatureScale
+        )
+    }
 }
 
 private fun generateG2ContinuousBezierWithZeroStartCurvature(
