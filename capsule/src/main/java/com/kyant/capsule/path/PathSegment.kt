@@ -1,6 +1,5 @@
 package com.kyant.capsule.path
 
-import android.graphics.RectF
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asAndroidPath
@@ -40,22 +39,20 @@ sealed interface PathSegment {
                 center.y + sin(startAngle) * radius
             )
 
-        override val to: Point
-            get() = Point(
-                center.x + cos(startAngle + sweepAngle) * radius,
-                center.y + sin(startAngle + sweepAngle) * radius
-            )
+        override val to: Point = Point(
+            center.x + cos(startAngle + sweepAngle) * radius,
+            center.y + sin(startAngle + sweepAngle) * radius
+        )
 
         override fun drawTo(path: Path) {
             path.asAndroidPath().arcTo(
-                RectF(
-                    (center.x - radius).toFloat(),
-                    (center.y - radius).toFloat(),
-                    (center.x + radius).toFloat(),
-                    (center.y + radius).toFloat()
-                ),
+                (center.x - radius).toFloat(),
+                (center.y - radius).toFloat(),
+                (center.x + radius).toFloat(),
+                (center.y + radius).toFloat(),
                 (startAngle * (180.0 / PI)).toFloat(),
-                (sweepAngle * (180.0 / PI)).toFloat()
+                (sweepAngle * (180.0 / PI)).toFloat(),
+                false
             )
         }
     }

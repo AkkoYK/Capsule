@@ -57,6 +57,6 @@ class PathSegmentsBuilder {
     }
 
     fun build(): PathSegments {
-        return segments.toList()
+        return segments
     }
 }
