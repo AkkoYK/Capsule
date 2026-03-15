@@ -5,6 +5,7 @@ import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastCoerceIn
 import com.kyant.capsule.AdvancedContinuity
 import com.kyant.capsule.Continuity
+import com.kyant.capsule.core.CubicBezier
 import com.kyant.capsule.core.Point
 import com.kyant.capsule.lerp
 import com.kyant.capsule.path.PathSegments
